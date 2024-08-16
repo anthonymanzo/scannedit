@@ -1,18 +1,5 @@
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-
 import ScanditBarcodeCapture
+import Foundation
 
 class ViewController: UIViewController {
     @IBOutlet private weak var tableView: ItemsTableView!
@@ -23,10 +10,7 @@ class ViewController: UIViewController {
 
     private lazy var sparkScan: SparkScan = {
         let settings = SparkScanSettings()
-        // The settings instance initially has all types of barcodes (symbologies) disabled. For the purpose of this
-        // sample we enable just Code128 and DataMatrix. In your own app ensure that you only enable the
-        // symbologies that your app requires as every additional enabled symbology has an impact on processing times.
-        Set<Symbology>([.ean13UPCA, .ean8, .upce, .code39, .code128]).forEach {
+        Set<Symbology>([.ean13UPCA, .ean8, .upce, .code39, .code128, .qr]).forEach {
             settings.set(symbology: $0, enabled: true)
         }
 
@@ -47,14 +31,12 @@ class ViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // Make sure to call the corresponding SparkScan method
         sparkScanView.prepareScanning()
         tableView.viewModel = itemsTableViewModel
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        // Make sure to call the corresponding SparkScan method
         sparkScanView.stopScanning()
     }
 
@@ -72,12 +54,10 @@ extension ViewController {
     }
 
     private func setupUI() {
-        // Create the SparkScanView passing the context and the mode.
         sparkScanView = SparkScanView(parentView: view,
                                       context: context,
                                       sparkScan: sparkScan,
                                       settings: SparkScanViewSettings())
-        // Show the button used to switch to BarcodeCount
         sparkScanView.isBarcodeCountButtonVisible = true
         sparkScanView.uiDelegate = self
         itemsTableViewModel = ItemsTableViewModel()
@@ -88,7 +68,6 @@ extension ViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         super.prepare(for: segue, sender: sender)
         if let barcodeCountVC = segue.destination as? BarcodeCountViewController {
-            // Stop SparkScan before moving to BarcodeCount
             sparkScan.isEnabled = false
             barcodeCountVC.context = context
             barcodeCountVC.itemsTableViewModel = itemsTableViewModel
@@ -101,8 +80,35 @@ extension ViewController {
 extension ViewController: SparkScanListener {
 
     func sparkScan(_ sparkScan: SparkScan, didScanIn session: SparkScanSession, frameData: FrameData?) {
-        guard let barcode = session.newlyRecognizedBarcode, barcode.data != nil else {
+        guard let barcode = session.newlyRecognizedBarcode, let barcodeData = barcode.data else {
             return
+        }
+        // Look for WHOVA formatted data, theirs is an email address.  If found,
+        
+        // Then format into a url with what's available(hopefully) or an api call.
+        
+        // Check if the scanned data is a valid URL
+        if let url = URL(string: barcodeData), UIApplication.shared.canOpenURL(url) {
+            // Trigger the GET request in the background
+            let task = URLSession.shared.dataTask(with: url) { data, response, error in
+                var success = false
+                if let httpResponse = response as? HTTPURLResponse {
+                    success = (200...299).contains(httpResponse.statusCode)
+                }
+                
+                // Here you can add logic to handle the success or failure of the request
+                // For example, updating the UI or logging the result
+                DispatchQueue.main.async {
+                    if success {
+                        // Handle successful response
+                        print("GET request successful: \(url)")
+                    } else {
+                        // Handle failed response
+                        print("GET request failed: \(url)")
+                    }
+                }
+            }
+            task.resume()  // Start the background task
         }
 
         DispatchQueue.main.async {
@@ -115,7 +121,6 @@ extension ViewController: SparkScanListener {
 
 extension ViewController: SparkScanViewUIDelegate {
     func barcodeCountButtonTapped(in view: SparkScanView) {
-        // Switch to BarcodeCount
         performSegue(withIdentifier: "ShowBarcodeCount", sender: nil)
     }
 }
