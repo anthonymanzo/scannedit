@@ -29,7 +29,7 @@ class BarcodeCountViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "Receiving"
+        self.title = "QR & Badge Scanning"
         setupRecognition()
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(didEnterBackground),
@@ -94,7 +94,7 @@ class BarcodeCountViewController: UIViewController {
         // The settings instance initially has all types of barcodes (symbologies) disabled. For the purpose of this
         // sample we enable just Code128 and DataMatrix. In your own app ensure that you only enable the
         // symbologies that your app requires as every additional enabled symbology has an impact on processing times.
-        Set<Symbology>([.ean13UPCA, .ean8, .upce, .code39, .code128]).forEach {
+        Set<Symbology>([.ean13UPCA, .ean8, .upce, .code39, .code128, .qr]).forEach {
             settings.set(symbology: $0, enabled: true)
         }
 
