@@ -2,7 +2,7 @@ import ScanditBarcodeCapture
 import Foundation
 
 class ViewController: UIViewController {
-    private var whova_url: String?
+
     @IBOutlet private weak var tableView: ItemsTableView!
     @IBOutlet private weak var clearListButton: UIButton!
 
@@ -49,9 +49,6 @@ class ViewController: UIViewController {
 // MARK: - Update View Methods
 
 extension ViewController {
-    
-    
-
     private func setupRecognition() {
         sparkScan.addListener(self)
     }
@@ -87,31 +84,32 @@ extension ViewController: SparkScanListener {
             return
         }
         print("Here is the scanned data: \(barcodeData)")
+
         // Look for WHOVA formatted data, theirs is an email address. If found, handle accordingly
         if isValidEmail(barcodeData) {
             print("Detected WHOVA email: \(barcodeData)")
-            
+
             // Perform API lookup for WHOVA email
             guard let lookupURL = URL(string: "http://badgeserver.local:8000/badgeprinter/whova_precheckin?email=\(barcodeData)") else { return }
-            
-            let task = URLSession.shared.dataTask(with: lookupURL) { data, response, error in
-                guard let data = data, error == nil else {
+
+            let task = URLSession.shared.dataTask(with: lookupURL) { [weak self] data, response, error in
+                guard let self = self, let data = data, error == nil else {
                     print("Failed to fetch data: \(error?.localizedDescription ?? "Unknown error")")
                     return
                 }
-                
+
                 do {
                     if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                        let registrationId = jsonResponse["pk"] as? Int,
-                       let conference = jsonResponse["conference"] as? String  {
+                       let conference = jsonResponse["conference"] as? String {
                         let conferenceEncoded = conference.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-                        self.whova_url  = "http://badgeserver.local:8000/badgeprinter/checkin?conference=\(conferenceEncoded)&pk=\(registrationId)"
-                        print("Whova URL: \(self.whova_url as Optional)")
+                        let urlString = "http://badgeserver.local:8000/badgeprinter/checkin?conference=\(conferenceEncoded)&pk=\(registrationId)"
+                        
                         DispatchQueue.main.async {
                             print("Registration PK: \(registrationId), Conference: \(conference)")
-                            // Store or use the registrationId as needed for subsequent actions
+                            self.performNetworkRequest(with: urlString)
                         }
-                        
+
                     } else {
                         DispatchQueue.main.async {
                             print("No registration found for email: \(barcodeData)")
@@ -124,20 +122,22 @@ extension ViewController: SparkScanListener {
                 }
             }
             task.resume()
+        } else {
+            // Use barcodeData directly if it’s not a WHOVA email
+            self.performNetworkRequest(with: barcodeData)
         }
-        
-        var urlString = ""
-        
-        if (self.whova_url ?? "").isEmpty {
-            urlString = barcodeData
+
+        DispatchQueue.main.async {
+            self.tableView.viewModel?.addBarcode(barcode)
         }
-        
-        else {
-            urlString = self.whova_url!
-        }
-        
+    }
+
+    private func performNetworkRequest(with urlString: String) {
         print("URL to be used: \(urlString)") // Debug info
-        guard let url = URL(string: urlString) else { return }
+        guard let url = URL(string: urlString) else {
+            print("Invalid URL: \(urlString)")
+            return
+        }
 
         let task = URLSession.shared.dataTask(with: url) { data, response, error in
             print("opening url")
@@ -145,7 +145,7 @@ extension ViewController: SparkScanListener {
             if let httpResponse = response as? HTTPURLResponse {
                 success = (200...299).contains(httpResponse.statusCode)
             }
-            
+
             DispatchQueue.main.async {
                 if success {
                     print("GET request successful: \(url)")
@@ -155,11 +155,6 @@ extension ViewController: SparkScanListener {
             }
         }
         task.resume()
-        
-
-        DispatchQueue.main.async {
-            self.tableView.viewModel?.addBarcode(barcode)
-        }
     }
 
     private func isValidEmail(_ data: String) -> Bool {
@@ -168,12 +163,6 @@ extension ViewController: SparkScanListener {
         let emailPredicate = NSPredicate(format: "SELF MATCHES[c] %@", emailRegEx)
         return emailPredicate.evaluate(with: data)
     }
-    
-//    private func isValidURL(_ data: String) -> Bool {
-//        let urlRegEx = "(http|https)://((\\w|-)+\\.)+(\\w|-)+(\\:\\d+)?(/.*)?"
-//        let urlPredicate = NSPredicate(format: "SELF MATCHES[c] %@", urlRegEx)
-//        return urlPredicate.evaluate(with: data)
-//    }
 }
 
 // MARK: - SparkScanViewUIDelegate Protocol Implementation

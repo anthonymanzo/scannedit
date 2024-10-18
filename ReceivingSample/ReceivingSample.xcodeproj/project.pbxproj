@@ -354,6 +354,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-DSCANDIT_LICENSE_KEY=$(SCANDIT_LICENSE_KEY)\n";
 				PRODUCT_NAME = "";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -411,6 +412,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-DSCANDIT_LICENSE_KEY=$(SCANDIT_LICENSE_KEY)\n";
 				PRODUCT_NAME = "";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -434,6 +436,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				NEW_SETTING = "";
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-DSCANDIT_LICENSE_KEY=$(SCANDIT_LICENSE_KEY)";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.scandit.receivingsample$(SAMPLE_CODE_DISAMBIGUATOR)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -459,6 +463,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				NEW_SETTING = "";
+				"OTHER_SWIFT_FLAGS[arch=*]" = "-DSCANDIT_LICENSE_KEY=$(SCANDIT_LICENSE_KEY)";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.scandit.receivingsample$(SAMPLE_CODE_DISAMBIGUATOR)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
