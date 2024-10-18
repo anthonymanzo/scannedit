@@ -48,6 +48,7 @@
 		00C552CF22E891320068499C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		00C552D122E891320068499C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00C552DC22E898A50068499C /* DataCaptureContext+Licensed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataCaptureContext+Licensed.swift"; sourceTree = "<group>"; };
+		2DA31FD32CC31F720043EE04 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		3051891529BF147A0000F1F7 /* ItemTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ItemTableViewCell.xib; sourceTree = "<group>"; };
 		3051892629BF54050000F1F7 /* ItemsTableViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ItemsTableViewModel.swift; path = ReceivingSample/Models/ItemsTableViewModel.swift; sourceTree = SOURCE_ROOT; };
 		30A86E3E29BA0BB6002B84E5 /* BarcodeCountViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeCountViewController.swift; sourceTree = "<group>"; };
@@ -173,6 +174,7 @@
 			isa = PBXGroup;
 			children = (
 				65203CB12577FB79006246C6 /* SampleCode.xcconfig */,
+				2DA31FD32CC31F720043EE04 /* Debug.xcconfig */,
 			);
 			name = Configuration;
 			path = ../Configuration;
@@ -297,7 +299,7 @@
 /* Begin XCBuildConfiguration section */
 		00C552D222E891320068499C /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 65203CB12577FB79006246C6 /* SampleCode.xcconfig */;
+			baseConfigurationReference = 2DA31FD32CC31F720043EE04 /* Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -361,7 +363,7 @@
 		};
 		00C552D322E891320068499C /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 65203CB12577FB79006246C6 /* SampleCode.xcconfig */;
+			baseConfigurationReference = 2DA31FD32CC31F720043EE04 /* Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -419,7 +421,7 @@
 		};
 		00C552D522E891320068499C /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 65203CB12577FB79006246C6 /* SampleCode.xcconfig */;
+			baseConfigurationReference = 2DA31FD32CC31F720043EE04 /* Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
@@ -444,7 +446,7 @@
 		};
 		00C552D622E891320068499C /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 65203CB12577FB79006246C6 /* SampleCode.xcconfig */;
+			baseConfigurationReference = 2DA31FD32CC31F720043EE04 /* Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;

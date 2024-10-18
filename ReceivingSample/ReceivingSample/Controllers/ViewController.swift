@@ -2,6 +2,7 @@ import ScanditBarcodeCapture
 import Foundation
 
 class ViewController: UIViewController {
+    private var whova_url: String?
     @IBOutlet private weak var tableView: ItemsTableView!
     @IBOutlet private weak var clearListButton: UIButton!
 
@@ -48,6 +49,8 @@ class ViewController: UIViewController {
 // MARK: - Update View Methods
 
 extension ViewController {
+    
+    
 
     private func setupRecognition() {
         sparkScan.addListener(self)
@@ -83,38 +86,94 @@ extension ViewController: SparkScanListener {
         guard let barcode = session.newlyRecognizedBarcode, let barcodeData = barcode.data else {
             return
         }
-        // Look for WHOVA formatted data, theirs is an email address.  If found,
-        
-        // Then format into a url with what's available(hopefully) or an api call.
-        
-        // Check if the scanned data is a valid URL
-        if let url = URL(string: barcodeData), UIApplication.shared.canOpenURL(url) {
-            // Trigger the GET request in the background
-            let task = URLSession.shared.dataTask(with: url) { data, response, error in
-                var success = false
-                if let httpResponse = response as? HTTPURLResponse {
-                    success = (200...299).contains(httpResponse.statusCode)
+        print("Here is the scanned data: \(barcodeData)")
+        // Look for WHOVA formatted data, theirs is an email address. If found, handle accordingly
+        if isValidEmail(barcodeData) {
+            print("Detected WHOVA email: \(barcodeData)")
+            
+            // Perform API lookup for WHOVA email
+            guard let lookupURL = URL(string: "http://badgeserver.local:8000/badgeprinter/whova_precheckin?email=\(barcodeData)") else { return }
+            
+            let task = URLSession.shared.dataTask(with: lookupURL) { data, response, error in
+                guard let data = data, error == nil else {
+                    print("Failed to fetch data: \(error?.localizedDescription ?? "Unknown error")")
+                    return
                 }
                 
-                // Here you can add logic to handle the success or failure of the request
-                // For example, updating the UI or logging the result
-                DispatchQueue.main.async {
-                    if success {
-                        // Handle successful response
-                        print("GET request successful: \(url)")
+                do {
+                    if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                       let registrationId = jsonResponse["pk"] as? Int,
+                       let conference = jsonResponse["conference"] as? String  {
+                        let conferenceEncoded = conference.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+                        self.whova_url  = "http://badgeserver.local:8000/badgeprinter/checkin?conference=\(conferenceEncoded)&pk=\(registrationId)"
+                        print("Whova URL: \(self.whova_url as Optional)")
+                        DispatchQueue.main.async {
+                            print("Registration PK: \(registrationId), Conference: \(conference)")
+                            // Store or use the registrationId as needed for subsequent actions
+                        }
+                        
                     } else {
-                        // Handle failed response
-                        print("GET request failed: \(url)")
+                        DispatchQueue.main.async {
+                            print("No registration found for email: \(barcodeData)")
+                        }
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        print("Failed to parse JSON response: \(error.localizedDescription)")
                     }
                 }
             }
-            task.resume()  // Start the background task
+            task.resume()
         }
+        
+        var urlString = ""
+        
+        if (self.whova_url ?? "").isEmpty {
+            urlString = barcodeData
+        }
+        
+        else {
+            urlString = self.whova_url!
+        }
+        
+        print("URL to be used: \(urlString)") // Debug info
+        guard let url = URL(string: urlString) else { return }
+
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            print("opening url")
+            var success = false
+            if let httpResponse = response as? HTTPURLResponse {
+                success = (200...299).contains(httpResponse.statusCode)
+            }
+            
+            DispatchQueue.main.async {
+                if success {
+                    print("GET request successful: \(url)")
+                } else {
+                    print("GET request failed: \(url)")
+                }
+            }
+        }
+        task.resume()
+        
 
         DispatchQueue.main.async {
             self.tableView.viewModel?.addBarcode(barcode)
         }
     }
+
+    private func isValidEmail(_ data: String) -> Bool {
+        // Updated regex to fix invalid escape sequence
+        let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailPredicate = NSPredicate(format: "SELF MATCHES[c] %@", emailRegEx)
+        return emailPredicate.evaluate(with: data)
+    }
+    
+//    private func isValidURL(_ data: String) -> Bool {
+//        let urlRegEx = "(http|https)://((\\w|-)+\\.)+(\\w|-)+(\\:\\d+)?(/.*)?"
+//        let urlPredicate = NSPredicate(format: "SELF MATCHES[c] %@", urlRegEx)
+//        return urlPredicate.evaluate(with: data)
+//    }
 }
 
 // MARK: - SparkScanViewUIDelegate Protocol Implementation

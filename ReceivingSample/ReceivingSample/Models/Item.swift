@@ -27,6 +27,9 @@ struct Item: Equatable {
 
     /// Number of items with this barcode
     let quantity: Int
+    
+    // Print status
+    let printStatus: String
 
     /// Computed var to get from symbology an human-readable name.
     var symbologyReadableName: String {
@@ -40,13 +43,22 @@ extension Item {
     init(barcode: Barcode) {
         self.init(symbology: barcode.symbology,
             data: barcode.data ?? "",
-            quantity: 1)
+            quantity: 1,
+        printStatus: "pending")
     }
 
     func copyWithIncreasedQuantity() -> Item {
         return Item(symbology: symbology,
                     data: data,
-                    quantity: quantity + 1)
+                    quantity: quantity + 1,
+                    printStatus: "pending")
 
+    }
+    
+    func copyWithPendingPrint() -> Item {
+        return Item(symbology: symbology,
+                    data:data,
+                    quantity:quantity,
+                    printStatus: "pending")
     }
 }
